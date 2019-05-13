@@ -49,7 +49,7 @@ func CreateUser(session session, user UserCreate) (User, error) {
 }
 
 // ListUsers List users from store
-func ListUsers(session session, user UserCreate) ([]User, error) {
+func ListUsers(session session) ([]User, error) {
 	users := session.store.users
 	return users, nil
 }
