@@ -14,7 +14,9 @@ func newSession() *session {
 	return &session{
 		store{
 			[]User{
-				{1, "Nozomi Sugiyama", "nozomi", "1970/1/1", "090-6809-3158"},
+				{1, "Nozomi Sugiyama", "sugiyama@example.com", "1970/1/1", "XXX-XXXX-XXXX"},
+				{2, "Hoge Huga", "hoge@example.com", "1992/03/16", "YYY-YYYY-YYYY"},
+				{2, "Foo Bar", "foo@example.com", "1977/06/25", "ZZZ-ZZZZ-ZZZZ"},
 			},
 		},
 	}
