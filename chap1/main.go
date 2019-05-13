@@ -28,12 +28,12 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 		case "html":
 			w.Header().Set("Content-Type", "text/html")
 			for _, value := range users {
-				fmt.Fprint(w, strconv.Itoa(value.ID)+","+value.Name+","+value.Email+","+value.Birthday+","+value.PhoneNumber+"\n")
+				fmt.Fprint(w, toStringFromUser(value) + "\n")
 			}
 		case "plain":
 			w.Header().Set("Content-Type", "text/plain")
 			for _, value := range users {
-				fmt.Fprint(w, strconv.Itoa(value.ID)+","+value.Name+","+value.Email+","+value.Birthday+","+value.PhoneNumber+"\n")
+				fmt.Fprint(w, toStringFromUser(value) + "\n")
 			}
 		// json
 		default:
@@ -61,15 +61,29 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res, err := json.Marshal(newUser)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		switch r.URL.Query().Get("format") {
+		case "html":
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, toStringFromUser(newUser) + "\n")
+		case "plain":
+			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprint(w, toStringFromUser(newUser) + "\n")
+		// json
+		default:
+			res, err := json.Marshal(newUser)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, string(res))
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, string(res))
+		}
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}
+}
+
+func toStringFromUser(user model.User) string {
+	return strconv.Itoa(user.ID)+","+user.Name+","+user.Email+","+user.Birthday+","+user.PhoneNumber
 }
