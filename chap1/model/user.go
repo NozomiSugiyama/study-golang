@@ -34,7 +34,7 @@ type UserUpdate struct {
 }
 
 // CreateUser Create user
-func CreateUser(session session, user UserCreate) (User, error) {
+func CreateUser(session *session, user UserCreate) (User, error) {
 	rand.Seed(time.Now().UnixNano())
 	fmt.Println(rand.Int63())
 	newUser := User{
@@ -49,7 +49,7 @@ func CreateUser(session session, user UserCreate) (User, error) {
 }
 
 // ListUsers List users from store
-func ListUsers(session session) ([]User, error) {
+func ListUsers(session *session) ([]User, error) {
 	users := session.store.users
 	return users, nil
 }
