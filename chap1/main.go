@@ -4,14 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"github.com/NozomiSugiyama/study-golang/chap1/model"
 )
-
-type User struct {
-	Name        string `json:"name"`
-	Birthday    string `json:"birthday"`
-	Email       string `json:"email"`
-	PhoneNumber string `json:"phone_number"`
-}
 
 func main() {
 	http.HandleFunc("/json/users", usersHandler)
@@ -20,12 +14,16 @@ func main() {
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
+	session := model.GetSession()
 	switch r.Method {
 	case "GET":
-		response := []User{
-			{"Nozomi Sugiyama", "1000/10/10", "Test@test.com", "09+0000-0000-0000"},
+		usres, err := model.ListUsers(session)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		res, err := json.Marshal(response)
+
+		res, err := json.Marshal(usres)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
