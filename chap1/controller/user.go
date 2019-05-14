@@ -15,9 +15,9 @@ func ListUsers() ([]model.User, error) {
 
 func CreateUser(user model.UserCreate) (model.User, error) {
 	session := model.GetSession()
-	_user, err := model.CreateUser(session, user)
+	newUser, err := model.CreateUser(session, user)
 	if err != nil {
 		return model.User{}, err
 	}
-	return _user, nil
+	return newUser, nil
 }

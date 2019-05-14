@@ -49,31 +49,34 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, string(res))
 		}
 	case "POST":
-		var user model.UserCreate
+		// var user model.UserCreate{}
+		user := &model.UserCreate{}
 
 		ct := r.Header.Get("Content-Type")
-		if strings.HasPrefix(ct, "multipart/form-data") {
+		switch {
+		case strings.HasPrefix(ct, "multipart/form-data"):
 			user.Name = r.FormValue("name")
 			user.Email = r.FormValue("email")
 			user.Birthday = r.FormValue("birthday")
 			user.PhoneNumber = r.FormValue("phone_number")
-		} else if ct == "application/x-www-form-urlencoded" {
+		case ct == "application/x-www-form-urlencoded":
 			user.Name = r.FormValue("name")
 			user.Email = r.FormValue("email")
 			user.Birthday = r.FormValue("birthday")
 			user.PhoneNumber = r.FormValue("phone_number")
-		} else if ct == "application/json" {
+		case ct == "application/json":
 			decoder := json.NewDecoder(r.Body)
-			err := decoder.Decode(&user)
+			// err := decoder.Decode(&user)
+			err := decoder.Decode(user)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-		} else {
+		default:
 			http.Error(w, "content-type is a required field", http.StatusBadRequest)
 		}
 
-		newUser, err := controller.CreateUser(user)
+		newUser, err := controller.CreateUser(*user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
