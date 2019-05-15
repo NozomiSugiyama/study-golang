@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"net/http/fcgi"
 	"strconv"
 	"strings"
 
@@ -12,9 +14,12 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/users", usersHandler)
-
-	http.ListenAndServe(":32744", nil)
+	l, err := net.Listen("tcp", ":8000")
+	if err != nil {
+		return
+	}
+	http.HandleFunc("/wep/users", usersHandler)
+	fcgi.Serve(l, nil)
 }
 
 func usersHandler(w http.ResponseWriter, r *http.Request) {
