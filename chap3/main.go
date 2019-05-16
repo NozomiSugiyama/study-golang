@@ -1,32 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"net/http/fcgi"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
+	"github.com/NozomiSugiyama/study-golang/chap3/controller"
+	"github.com/NozomiSugiyama/study-golang/chap3/model"
 )
 
-var db *gorm.DB
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	log.Printf("db_hc")
-	type Result struct{ Value string }
-	var out Result
-	db.Raw("SELECT 'hello db' as value ").Scan(&out)
-	log.Printf("%v", out)
-	fmt.Fprintf(w, out.Value)
-}
+var session *model.Session
 
 func main() {
 	var err error
-	db, err = bootDB(
+	session, err = model.GetSession(
 		os.Getenv("APP_DB_ENDPOINT"),
 		os.Getenv("APP_DB_USER"),
 		os.Getenv("APP_DB_PASSWORD"),
@@ -35,38 +29,113 @@ func main() {
 		log.Print(err)
 		return
 	}
-	defer db.Close()
+	defer session.Close()
 
-	http.HandleFunc("/wep/systems.db.health.check", handler)
 	l, err := net.Listen("tcp", ":8000")
 	if err != nil {
 		return
 	}
+	http.HandleFunc("/wep/users", usersHandler)
 	fcgi.Serve(l, nil)
 }
 
-func bootDB(host, user, pass string) (*gorm.DB, error) {
-	var err error
+func usersHandler(w http.ResponseWriter, r *http.Request) {
+	print("handle /wep/users")
+	switch r.Method {
+	case "GET":
+		users, err := controller.ListUsers(session)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	driver := "mysql"
-	protocol := "tcp"
-	port := 3306
-	name := "study_golang"
-	args := "?charset=utf8&parseTime=True&loc=Local"
+		switch r.URL.Query().Get("format") {
+		case "html":
+			w.Header().Set("Content-Type", "text/html")
+			for _, value := range users {
+				fmt.Fprint(w, toStringFromUser(value)+"\n")
+			}
+		case "plain":
+			w.Header().Set("Content-Type", "text/plain")
+			for _, value := range users {
+				fmt.Fprint(w, toStringFromUser(value)+"\n")
+			}
+		// json
+		default:
+			res, err := json.Marshal(users)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 
-	con, err := gorm.Open(driver,
-		fmt.Sprintf("%s:%s@%s([%s]:%d)/%s%s", user, pass, protocol, host, port, name, args),
-	)
-	if err != nil {
-		return nil, err
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, string(res))
+		}
+	case "POST":
+		var user controller.UserCreate
+
+		ct := r.Header.Get("Content-Type")
+		switch {
+		case strings.HasPrefix(ct, "multipart/form-data"):
+			user.Name = r.FormValue("name")
+			user.Email = r.FormValue("email")
+			// Datetime(String) to int type conversion
+			t, err := time.Parse("2006-01-02", r.FormValue("birthday"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+			user.Birthday = t
+			user.PhoneNumber = r.FormValue("phone_number")
+		case ct == "application/x-www-form-urlencoded":
+			user.Name = r.FormValue("name")
+			user.Email = r.FormValue("email")
+			// Datetime(String) to timestamp type conversion
+			t, err := time.Parse("2006-01-02", r.FormValue("birthday"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+			user.Birthday = t
+			user.PhoneNumber = r.FormValue("phone_number")
+		case ct == "application/json":
+			decoder := json.NewDecoder(r.Body)
+			err := decoder.Decode(&user)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		default:
+			http.Error(w, "content-type is a required field", http.StatusBadRequest)
+		}
+
+		newUser, err := controller.CreateUser(session, user)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		switch r.URL.Query().Get("format") {
+		case "html":
+			w.Header().Set("Content-Type", "text/html")
+			fmt.Fprint(w, toStringFromUser(newUser)+"\n")
+		case "plain":
+			w.Header().Set("Content-Type", "text/plain")
+			fmt.Fprint(w, toStringFromUser(newUser)+"\n")
+		// json
+		default:
+			res, err := json.Marshal(newUser)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, string(res))
+		}
+	default:
+		fmt.Fprintf(w, "Only GET and POST methods are supported.")
 	}
+}
 
-	con.DB().SetConnMaxLifetime(time.Second * 10)
-
-	err = con.DB().Ping()
-	if err != nil {
-		return nil, err
-	}
-
-	return con, nil
+func toStringFromUser(user controller.User) string {
+	return strconv.Itoa(int(user.ID)) + "," + user.Name + "," + user.Email + "," + user.Birthday.Format("2006-01-02") + "," + user.PhoneNumber
 }
