@@ -1,8 +1,12 @@
 package model
 
 import (
+	"github.com/jinzhu/gorm"
 	"time"
 )
+type UserRepository struct {
+	DB *gorm.DB
+}
 
 type User struct {
 	Model
@@ -15,14 +19,14 @@ type User struct {
 const tableName = "users"
 
 // CreateUser Create user
-func CreateUser(session *Session, user *User) error {
-	session.Table(tableName).Create(user)
+func (repo *UserRepository) CreateUser(user *User) error {
+	repo.DB.Table(tableName).Create(user)
 	return nil
 }
 
 // ListUsers List users from store
-func ListUsers(session *Session) ([]User, error) {
+func (repo *UserRepository) ListUsers() ([]User, error) {
 	var users []User
-	session.Find(&users)
+	repo.DB.Find(&users)
 	return users, nil
 }
