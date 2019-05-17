@@ -30,8 +30,8 @@ func main() {
 
 	defer db.Close()
 
-	repo := &model.UserRepository{db}
-	handler := handler.Handler{UserRepository: repo}
+	repo := model.NewUserRepository(db)
+	handler := handler.NewHandler(repo)
 
 	l, err := net.Listen("tcp", ":8000")
 	if err != nil {

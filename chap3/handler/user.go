@@ -37,7 +37,13 @@ type UserUpdate struct {
 }
 
 type Handler struct {
-	UserRepository *model.UserRepository
+	userRepository *model.UserRepository
+}
+
+func NewHandler(repo *model.UserRepository) *Handler {
+	h := new(Handler)
+	h.userRepository = repo
+	return h
 }
 
 func (h *Handler) UsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +63,7 @@ func (h *Handler) UsersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.UserRepository.ListUsers()
+	users, err := h.userRepository.ListUsers()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -107,7 +113,7 @@ func (h *Handler) CreateUsers(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: user.PhoneNumber,
 	}
 
-	err = h.UserRepository.CreateUser(&newUser)
+	err = h.userRepository.CreateUser(&newUser)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

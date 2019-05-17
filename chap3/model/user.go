@@ -5,7 +5,7 @@ import (
 	"time"
 )
 type UserRepository struct {
-	DB *gorm.DB
+	db *gorm.DB
 }
 
 type User struct {
@@ -18,15 +18,21 @@ type User struct {
 
 const tableName = "users"
 
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	repo := new(UserRepository)
+	repo.db= db
+	return repo
+}
+
 // CreateUser Create user
 func (repo *UserRepository) CreateUser(user *User) error {
-	repo.DB.Table(tableName).Create(user)
+	repo.db.Table(tableName).Create(user)
 	return nil
 }
 
 // ListUsers List users from store
 func (repo *UserRepository) ListUsers() ([]User, error) {
 	var users []User
-	repo.DB.Find(&users)
+	repo.db.Find(&users)
 	return users, nil
 }
