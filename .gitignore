@@ -14,3 +14,4 @@
 .envrc
 .idea/
 golang-api
+vendor/

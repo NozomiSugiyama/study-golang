@@ -1,1 +1,49 @@
-hello assets index
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>User registration</title>
+  </head>
+  <body>
+    <div id="root">
+        <form action="/wep/users" method="POST" enctype="multipart/form-data">
+            <table>
+                <tr>
+                    <td>
+                        <label for="name">名前: </label>
+                    </td>
+                    <td>
+                        <input type="text" name="name" id="name">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="email">メールアドレス: </label>
+                    </td>
+                    <td>
+                        <input type="email" name="email" id="email"><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="birthday">誕生日: </label>
+                    </td>
+                    <td>
+                        <input type="date" name="birthday" id="birthday"><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="phone_number">電話番号: </label>
+                    </td>
+                    <td>
+                        <input type="tel" name="phone_number" id="phone_number"><br>
+                    </td>
+                </tr>
+            </table>
+            <button type="submit">送信</button>
+        </form>
+    </div>
+  </body>
+</html>
