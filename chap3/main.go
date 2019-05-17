@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	http.HandleFunc("/wep/users", handler.UsersHandler)
+	http.Handle("/wep/users", handler)
 	fcgi.Serve(l, nil)
 }
 

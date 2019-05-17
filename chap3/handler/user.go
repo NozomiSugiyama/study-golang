@@ -46,7 +46,7 @@ func NewHandler(repo *model.UserRepository) *Handler {
 	return h
 }
 
-func (h *Handler) UsersHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	print("handle /wep/users")
 	switch r.Method {
 	case http.MethodGet:
