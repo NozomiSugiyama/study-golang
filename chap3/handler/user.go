@@ -40,7 +40,7 @@ type Handler struct {
 	userRepository *model.UserRepository
 }
 
-func NewHandler(repo *model.UserRepository) *Handler {
+func NewUserHandler(repo *model.UserRepository) *Handler {
 	h := new(Handler)
 	h.userRepository = repo
 	return h

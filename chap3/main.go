@@ -31,13 +31,13 @@ func main() {
 	defer db.Close()
 
 	repo := model.NewUserRepository(db)
-	handler := handler.NewHandler(repo)
+	userHandler := handler.NewUserHandler(repo)
 
 	l, err := net.Listen("tcp", ":8000")
 	if err != nil {
 		return
 	}
-	http.Handle("/wep/users", handler)
+	http.Handle("/wep/users", userHandler)
 	fcgi.Serve(l, nil)
 }
 
